@@ -37,30 +37,61 @@ import requests
 def get_all_breeds():
     """GET request to fetch all dog breeds."""
     try:
-        response = requests.get("https://dog.ceo/api/breeds/list/all")
+        response = requests.get(f"https://dog.ceo/api/breeds/list/all")
         response.raise_for_status()
         data = response.json()
-        return data["message"]
-    except requests.exceptions.RequestException:
-        print("Error: Could not fetch breed list from API.")
+        if "message" in data:
+            return data["message"]
+        else:
+            print("Error: Unexpected API response structure!")
+            return {}
+    except requests.exceptions.RequestException as e:
+        print(f"Error: Could not fetch breed list from API. Details: {e}")
         return {}
 
 def get_random_image(breed):
     """GET request to fetch a random image from a breed."""
     # TODO: Make a request to https://dog.ceo/api/breed/{breed}/images/random
     # TODO: Return the image URL or handle errors
-    pass
+    try:
+        response = requests.get(f"https://dog.ceo/api/breed/{breed}/images/random")
+        response.raise_for_status()
+        data = response.json()
+        if "message" in data:
+            return data ['message']
+        else:
+            print("Error: Unexpected API response.")
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"Error: Could not fetch random breed image from API. Details: {e}")
+        return None
+
+
+   
 
 def get_random_sub_breed_image(breed, sub_breed):
     """GET request to fetch a random image from a sub-breed."""
     # TODO: Make a request to https://dog.ceo/api/breed/{breed}/{sub_breed}/images/random
     # TODO: Return the image URL or handle errors
-    pass
+    try:
+        response = requests.get(f"https://dog.ceo/api/breed/{breed}/{sub_breed}/images/random")
+        response.raise_for_status()
+        data = response.json()
+        if "message" in data:
+            return data ['message']
+        else:
+            print("Error: Unexpected API response.")
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"Error: Could not fetch random image for sub-breed '{sub_breed}'. Details: {e}")
+        return None
 
 def show_breeds(breeds_dict):
     """Prints all available breeds 5 per line."""
     # TODO: Print all breeds (sorted), 5 per line
-    pass
+    breed_list = sorted(breeds_dict.keys())
+    for i in range(0, len(breed_list), 5):
+        print(" | ".join(breed_list[i:i+5]))
 
 def main():
     while True:
@@ -74,17 +105,35 @@ def main():
 
         if choice == "1":
             breeds = get_all_breeds()
-            show_breeds(breeds)
+            if breeds:
+                show_breeds(breeds)
 
         elif choice == "2":
             breeds = get_all_breeds()
             breed = input("Enter breed name: ").strip().lower()
+            if breed in breeds:
+                image_url = get_random_image(breed)
+                if image_url:
+                    print(f"Random image of {breed}: {image_url}")
+            else:
+                print(f"Error: {breed} is not an existing breed at this time.")
             # TODO: Check if breed exists and fetch image
             # TODO: Print image URL or error message
 
         elif choice == "3":
             breeds = get_all_breeds()
             breed = input("Enter breed name: ").strip().lower()
+            if breed in breeds and breeds[breed]:
+                print(f"Available sub-breeds: {','.join(breeds[breed])}")
+                sub_breed = input("Enter sub-breed name: ").strip().lower()
+                if sub_breed in breeds[breed]:
+                    image_url = get_random_sub_breed_image(breed, sub_breed)
+                    if image_url:
+                        print(f"Random image of {breed} ({sub_breed}): {image_url}")
+                else:
+                    print(f"Error: '{sub_breed}' is not a valid sub-breed of {breed}.")
+            else:
+                print(f"Error: '{breed}' is not a valid breed with sub-breeds.")
             # TODO: Check if breed has sub-breeds
             # TODO: Ask for sub-breed, check if valid, then fetch image
             # TODO: Print image URL or error message
